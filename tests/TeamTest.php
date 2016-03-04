@@ -13,6 +13,7 @@ class TeamTest extends TestCase
      *  Verificar o nome do time, verificar se o time consegue salvar um usuario
      *  Verificar o maximo de usuarios que o time pode salvar
      *  Verificar se salva multiplos usuarios por collection
+     *  Verificar se não está salvando mais usuarios do que o permitido
      *  Verificar se está deletando um por vez, multiplos por vez ou todos
      */
 
@@ -49,6 +50,21 @@ class TeamTest extends TestCase
      * @test.
      *
      */
+    public function a_team_can_add_multiple_members_at_once()
+    {
+        $team = factory(Team::class)->create(['size' => 2]);
+
+        $users = factory(User::class, 2)->create();
+
+        $team->add($users);
+
+        $this->assertEquals(2, $team->count());
+    }
+
+    /**
+     * @test.
+     *
+     */
     public function a_team_has_a_maximum_size()
     {
         $team = factory(Team::class)->create(['size' => 2]);
@@ -70,16 +86,16 @@ class TeamTest extends TestCase
     /**
      * @test.
      *
-     */
-    public function a_team_can_add_multiple_members_at_once()
+     */    
+    public function when_adding_many_members_at_once_you_still_may_not_exceed_the_team_maximum_size()
     {
         $team = factory(Team::class)->create(['size' => 2]);
 
-        $users = factory(User::class, 2)->create();
+        $users = factory(User::class, 3)->create();
 
-        $team->add($users);
+        $this->setExpectedException('Exception');   
 
-        $this->assertEquals(2, $team->count());
+        $team->add($users);  
     }
 
     /**

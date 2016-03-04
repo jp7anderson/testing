@@ -8,10 +8,10 @@ class Team extends Model
 {
     protected $fillable = ['name', 'size'];
 
-    public function add($user)
+    public function add($users)
     {
         // guard
-        $this->guardAgainstTooManyMembers();
+        $this->guardAgainstTooManyMembers($users);
 
         $method = $user instanceof User ? 'save' : 'saveMany';
 
@@ -50,9 +50,18 @@ class Team extends Model
         return $this->members()->count();
     }
 
-    protected function guardAgainstTooManyMembers()
+    public function maximumSize()
     {
-        if ($this->count() >= $this->size) {
+        return $this->size;
+    }
+
+    protected function guardAgainstTooManyMembers($users)
+    {
+        $numUsersToAdd = ($users instanceof User) ? 1 : $users->count();
+
+        $newTeamCount = $this->count() + $numUsersToAdd;
+
+        if ($newTeamCount > $this->maximumSize()) {
             throw new \Exception;
         }
     }

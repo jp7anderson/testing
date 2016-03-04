@@ -14,32 +14,37 @@ class LikesTest extends TestCase
 
     use DatabaseTransactions;
 
+    protected $post;
+
+    public function setUp()
+    {
+        parent::setUp();
+
+        // given I have a post
+        $this->post = factory(Post::class)->create();
+
+        // and that user is logged in
+        // and a user
+        $this->signIn();
+    }
+
     /**
      * @test
      *
      */
     public function a_user_can_like_a_post()
     {
-        // given I have a post
-        $post = factory(Post::class)->create();
-        
-        // and a user
-        $user = factory(User::class)->create();
-        
-        // and that user is logged in
-        $this->actingAs($user);
-        
         // when they like a post
-        $post->like();
+        $this->post->like();
         
         // then we should see evidence in the database, and the post should be liked.
         $this->seeInDatabase('likes', [
-            'user_id' => $user->id,
-            'likeable_id' => $post->id,
-            'likeable_type' => get_class($post),
+            'user_id' => $this->user->id,
+            'likeable_id' => $this->post->id,
+            'likeable_type' => get_class($this->post),
         ]);
 
-        $this->assertTrue($post->isLiked());
+        $this->assertTrue($this->post->isLiked());
     }
 
     /**
@@ -48,23 +53,17 @@ class LikesTest extends TestCase
      */
     public function a_user_can_unlike_a_post()
     {
-        $post = factory(Post::class)->create();
+        $this->post->like();
         
-        $user = factory(User::class)->create();
-
-        $this->actingAs($user);
-        
-        $post->like();
-        
-        $post->unlike();
+        $this->post->unlike();
 
         $this->notSeeInDatabase('likes', [
-            'user_id' => $user->id,
-            'likeable_id' => $post->id,
-            'likeable_type' => get_class($post),
+            'user_id' => $this->user->id,
+            'likeable_id' => $this->post->id,
+            'likeable_type' => get_class($this->post),
         ]);
 
-        $this->assertFalse($post->isLiked());
+        $this->assertFalse($this->post->isLiked());
     }
 
     /**
@@ -73,19 +72,13 @@ class LikesTest extends TestCase
      */
     public function a_user_may_toggle_a_posts_like_status()
     {
-        $post = factory(Post::class)->create();
+        $this->post->toggle();
+
+        $this->assertTrue($this->post->isLiked());
         
-        $user = factory(User::class)->create();
+        $this->post->toggle();
 
-        $this->actingAs($user);
-
-        $post->toggle();
-
-        $this->assertTrue($post->isLiked());
-        
-        $post->toggle();
-
-        $this->assertFalse($post->isLiked());
+        $this->assertFalse($this->post->isLiked());
     }
 
     /**
@@ -94,14 +87,8 @@ class LikesTest extends TestCase
      */
     public function a_post_knows_how_many_likes_it_has()
     {
-        $post = factory(Post::class)->create();
-        
-        $user = factory(User::class)->create();
+        $this->post->toggle();
 
-        $this->actingAs($user);
-
-        $post->toggle();
-
-        $this->assertEquals(1, $post->likesCount);
+        $this->assertEquals(1, $this->post->likesCount);
     }
 }

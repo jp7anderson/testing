@@ -13,7 +13,13 @@ class ExampleTest extends TestCase
      */
     public function testBasicExample()
     {
+        // 1. Visit the home page
+        // 2. Press a "Click Me" link
+        // 3. See "You've been clicked, punk."
+        // 4. Assert that the current url is /feedback
         $this->visit('/')
-             ->see('Laravel 5');
+            ->click('Click Me')
+            ->see("You've been clicked, punk.")
+            ->seePageIs('/feedback');
     }
 }

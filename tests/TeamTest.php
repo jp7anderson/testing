@@ -13,6 +13,7 @@ class TeamTest extends TestCase
      *  Verificar o nome do time, verificar se o time consegue salvar um usuario
      *  Verificar o maximo de usuarios que o time pode salvar
      *  Verificar se salva multiplos usuarios por collection
+     *  Verificar se está deletando um por vez, multiplos por vez ou todos
      */
 
     use DatabaseTransactions;
@@ -72,12 +73,63 @@ class TeamTest extends TestCase
      */
     public function a_team_can_add_multiple_members_at_once()
     {
-        $team = factory(Team::class)->create();
+        $team = factory(Team::class)->create(['size' => 2]);
 
         $users = factory(User::class, 2)->create();
 
         $team->add($users);
 
         $this->assertEquals(2, $team->count());
+    }
+
+    /**
+     * @test.
+     *
+     */
+    public function a_team_can_remove_a_member()
+    {
+        $team = factory(Team::class)->create(['size' => 2]);
+
+        $users = factory(User::class, 2)->create();
+
+        $team->add($users);
+
+        $team->remove($users[0]);
+
+        $this->assertEquals(1, $team->count());
+    }
+
+    /**
+     * @test.
+     *
+     */
+    public function a_team_can_remove_more_than_one_member_at_once()
+    {
+        $team = factory(Team::class)->create(['size' => 3]);
+
+        $users = factory(User::class, 3)->create();
+
+        $team->add($users);
+
+        $team->remove($users->slice(0, 2));
+
+        $this->assertEquals(1, $team->count());
+    }
+
+    /**
+     * @test.
+     *
+     */
+    public function a_team_can_remove_all_member_at_once()
+    {
+        $team = factory(Team::class)->create(['size' => 2]);
+
+        $users = factory(User::class, 2)->create();
+
+        $team->add($users);
+
+        $team->restart();
+
+        $this->assertEquals(0, $team->count());
     }
 }

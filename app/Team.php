@@ -14,8 +14,29 @@ class Team extends Model
         $this->guardAgainstTooManyMembers();
 
         $method = $user instanceof User ? 'save' : 'saveMany';
-        
+
         $this->members()->$method($user);
+    }
+
+    public function remove($users = null)
+    {
+        if ($users instanceof User) {
+            return $users->leaveTeam();
+        }
+
+        $this->removeMany($users);
+    }
+
+    public function removeMany($users)
+    {
+        return $this->members()
+            ->whereIn('id', $users->pluck('id'))
+            ->update(['team_id' => null]);
+    }
+
+    public function restart()
+    {
+        return $this->members()->update(['team_id' => null]);
     }
 
     public function members()
